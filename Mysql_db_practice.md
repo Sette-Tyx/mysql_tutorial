@@ -6,21 +6,28 @@
 
 **创建数据库**
 
+```
 create database db_name;
-
 create database if not exists db_name;
+```
 
 **切换数据库**
 
+```
 use db_name;
+```
 
 **查看当前数据库**
 
+```
 select database();
+```
 
 **删除数据库**
 
+```
 drop database if exist db_name;
+```
 
 
 
@@ -28,13 +35,17 @@ drop database if exist db_name;
 
 **查询当前数据库的所有表**
 
+```
 show tables;
+```
 
 
 
 **查询表结构**
 
+```
 desc tables_name;
+```
 
 
 
@@ -329,21 +340,21 @@ explain2 语句2
 
 explain执行计划各字段的含义：
 
-**id：**select查询到序列号，表示查询中执行select子句或者是表的顺序， id越大越先执行，id一样的时候从上到下执行
+**id**：select查询到序列号，表示查询中执行select子句或者是表的顺序， id越大越先执行，id一样的时候从上到下执行
 
 select_type：表示select的类型，常见的取值有SIMPLE（简单表，不用表连接或者子查询）、PRIMARY（主查询，即外层查询）、UNION（UNION中的第二个或者后面的查询语句）、SUBQUERY（SELECT/WHERE之后包含了子查询）等
 
-**type：**表示连接类型，性能由好到差的连接类型为NULL、system、const、eq_ref、ref、range、index、all。不查询任何表的时候才会到NULL，system是查询系统表的时候，访问主键或者唯一索引的时候是const，非唯一索引的时候会出现ref，all代表全表扫描，index代表对索引进行全部扫描。
+**type**：表示连接类型，性能由好到差的连接类型为NULL、system、const、eq_ref、ref、range、index、all。不查询任何表的时候才会到NULL，system是查询系统表的时候，访问主键或者唯一索引的时候是const，非唯一索引的时候会出现ref，all代表全表扫描，index代表对索引进行全部扫描。
 
-**possible_key：**显示可能应用在这个表上的索引，一个或者多个。
+**possible_key**：显示可能应用在这个表上的索引，一个或者多个。
 
-**key：**实际使用的索引，如果为NULL，则表示没有使用索引。
+**key**：实际使用的索引，如果为NULL，则表示没有使用索引。
 
-**key_len：**索引中使用的字节数，该值为索引字段最大可能长度，并非实际使用长度，在不损失精确性的前提下，长度越短越好。
+**key_len**：索引中使用的字节数，该值为索引字段最大可能长度，并非实际使用长度，在不损失精确性的前提下，长度越短越好。
 
-**filtered：**表示返回结果的行数占需要读取行数的百分比，filtered的值越大越好。
+**filtered**：表示返回结果的行数占需要读取行数的百分比，filtered的值越大越好。
 
-**Extra：**额外信息展示字段。
+**Extra**：额外信息展示字段。
 
 
 
