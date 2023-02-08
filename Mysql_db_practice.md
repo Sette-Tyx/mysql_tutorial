@@ -172,11 +172,9 @@ create table 表名 my_myisam(
 
 
 
-## InnodDB
+## InnodDB和MyISAM的三大区别
 
 事务、外键、行级锁
-
-
 
 
 
@@ -644,7 +642,7 @@ InnoDB的行锁是针对索引加的锁，不是针对记录加的锁，并且�
 
 对整个数据库实例加锁，使用的场景是全库的逻辑备份，对所有的表进行锁定，保证数据的完整性。
 
-```
+```mysql
 # 加全局锁
 flush tables with read lock;
 # 备份
@@ -655,3 +653,120 @@ unlock tables;
 
 **加了全局锁之后只能查不能写。**
 
+
+
+数据库加锁是一个比较重的操作，存在以下两个问题：
+
+1. 如果在主库上备份，那么在备份期间都不能执行更新，业务基本上要停摆；
+2. 如果在从库上备份，那么备份期间从库不能执行主库同步过来的binlog，会导致主从延迟；
+
+
+
+在InnoDB引擎中，我们可以在备份时，加上参数 --single-transaction 参数来完成不加锁的一致性备份。底层原理用的是快照读。
+
+```mysql
+mysqldump --single-transaction -uroot -p1234 itcast > itcast.sql
+```
+
+
+
+## 表级锁
+
+1. 表锁；
+2. 元数据锁；
+3. 意向锁；
+
+
+
+**表锁**
+
+1. 读锁；read lock
+2. 写锁；write lock
+
+**语法**：
+
+1. 加锁：lock tables 表名 表1 表2 read(write)
+2. 释放锁：unlock tables 或者 客户端断开链接
+
+
+
+**意向锁**
+
+诞生的原因：假如在执行DML的时候，加了行锁。如果现在要加表锁执行lock tables 表名 read（write），那么系统需要对每一行进行检查，查看这个行锁和表锁是否兼容，这样性能很低。意向锁的操作方法：现在可以在执行DML的时候先加行锁，然后再给表加意向锁。这时候如果再加表锁，只需要和意向锁判断是否兼容就可以。如果兼容就加表锁，如果不兼容就阻塞，直到意向锁释放，再加表锁。
+
+
+
+1. 意向共享锁（IS）：由语句select…lock in share mode添加。和读锁兼容。
+
+2. 意向排他锁（IX）：由语句insert，update，delete，select…for update添加。和读锁、写锁都不兼容。意向锁之间不会互斥。
+
+
+
+可以通过以下语句查看行锁和意向锁及行锁的加锁情况：
+
+```mysql
+select object_schema, object_name, index_name, lock_type, lock_mode, lock_data from performance_schema.data_locks;
+```
+
+ lock_type 表示锁的类型，table是表锁，record是行锁。
+
+
+
+## 行级锁
+
+应用在InnoDB存储引擎中。
+
+InnoDB的数据是基于索引组织的，行锁是通过对索引上的索引项加锁来实现的，而不是对记录加锁。行锁住要分为以下三类：
+
+1. 行锁（Record Lock）：锁定单个行记录的锁，防止其他事务对此进行update和delete。在RC和RR隔离级别下支持。
+
+2. 间隙锁（Gap Lock）：锁定索引记录间隙（不含该记录），确保索引间隙不变，防止其他事务在这个间隙进行insert，产生幻读，在RR隔离级别下支持。
+
+   <img src="./images/间隙锁1.png" alt="间隙锁1" style="zoom:50%;" />
+
+​	其中6和12之间就是间隙，12和16之间也是间隙，但是间隙锁不包含6or12，12or16
+
+3. 临键锁（Next-ket lock）：行锁和间隙锁组合，同时锁住数据，并锁住数据前面的间隙Gap。在RR隔离级别下支持。
+
+   <img src="./images/临键锁.png" alt="临键锁" style="zoom:50%;" />
+
+
+
+**行锁**
+
+InnoDB有以下两个类型的锁
+
+1. 共享锁（S）：和其他共享锁兼容，不兼容排他锁；
+2. 排他锁（X）：允许获取排他锁的事务更新数据，阻止其他事务获得相同数据集的共享锁和排他锁。排他锁和其他共享锁和排他锁互斥。
+
+<img src="./images/行锁1.png" alt="行锁1" style="zoom:50%;" />
+
+
+
+**间隙锁**
+
+默认情况下，InnoDB在RR事务隔离级别运行，InnoDB使用next-key锁进行搜索和索引扫描，以防止幻读。
+
+1. 索引上的等值查询（唯一索引），给不存在的记录加锁时，优化为间隙锁；
+2. 索引上的等值查询（普通索引），向右遍历时最后一个值不满足查询需求时，next-lock退化为间隙锁；
+3. 索引上的范围查询（唯一索引）-- 会访问到不满足条件的第一个值为止。
+
+
+
+注意：间隙锁唯一的目的是防止其他事务插入间隙。间隙锁可以共存，一个事务采用的间隙锁不会阻止另一个事务在同一间隙上采用间隙锁。
+
+
+
+## InnoDB逻辑存储结构
+
+<img src="./images/InnoDB逻辑存储结构.png" alt="InnoDB逻辑存储结构" style="zoom:50%;" />
+
+## InnoDB架构内存结构
+
+<img src="./images/InnoDB架构内存结构.png" alt="InnoDB架构内存结构" style="zoom:50%;" />
+
+<img src="./images/InnoDB架构内存结构2.png" alt="InnoDB架构内存结构2" style="zoom:50%;" />
+
+<img src="./images/InnoDB架构内存结构3.png" alt="InnoDB架构内存结构3" style="zoom:50%;" />
+
+<img src="./images/InnoDB架构内存结构4.png" alt="InnoDB架构内存结构4" style="zoom:50%;" />
