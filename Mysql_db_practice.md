@@ -770,3 +770,46 @@ InnoDB有以下两个类型的锁
 <img src="./images/InnoDB架构内存结构3.png" alt="InnoDB架构内存结构3" style="zoom:50%;" />
 
 <img src="./images/InnoDB架构内存结构4.png" alt="InnoDB架构内存结构4" style="zoom:50%;" />
+
+<img src="/Users/yinxutao/Desktop/mysql_tutorial/images/磁盘结构1.png" alt="磁盘结构1" style="zoom:50%;" />
+
+<img src="/Users/yinxutao/Desktop/mysql_tutorial/images/磁盘结构2.png" alt="磁盘结构2" style="zoom:50%;" />
+
+## 架构-后台线程
+
+<img src="/Users/yinxutao/Desktop/mysql_tutorial/images/后台线程.png" alt="后台线程" style="zoom:50%;" />
+
+## 事务原理-持久性
+
+redo-log，记录的是事务提交时数据页的修改，是用来实现事务的持久性。是物理日志，即这个数据页里面的数据是什么样的。
+
+该日志文件主要有两部分组成：redo logo buffer和redo logo file，前者在内存中，后者在磁盘中。
+
+事务提交之后，数据会先写入内存结构的Redolog buffer，然后刷新到磁盘当中，持久化的保存。
+
+Q：提交的时候不用redolog可以吗？
+
+A：不可以，因为事务对数据的修改在磁盘中是随机位置的，对于磁盘大量随机位置的修改IO性能很低。但是对于日志文件写的方式是追加的，所以顺序磁盘IO这个性能相对来说会比较好一点。
+
+脏页的数据刷新到磁盘之后，redolog就失去作用了，所以那两个文件是循环写的。
+
+<img src="/Users/yinxutao/Desktop/mysql_tutorial/images/redo_log.png" alt="redo_log" style="zoom:50%;" />
+
+
+
+## 事务原理-原子性
+
+undo log
+
+回滚日志，用于记录数据被修改前的信息，两个作用：提供回滚和MVCC；
+
+undo log记录的是逻辑日志，并且是相反的操作。可以理解为，事务delete，undo log就记录insert。当执行roll back时，就可以从undo log中的逻辑日志中读取到相应的内容并进行回滚；
+
+undo log销毁：undo log在事务执行时产生，并不会在事务结束时销毁，因为还会用于MVCC；
+
+undo log存储：undo log采用段的方式进行管理和记录，存在roll back segment回滚段中，内部包含1024个 undo log日志。
+
+
+
+## MVCC
+
