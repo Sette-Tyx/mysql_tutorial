@@ -771,13 +771,13 @@ InnoDB有以下两个类型的锁
 
 <img src="./images/InnoDB架构内存结构4.png" alt="InnoDB架构内存结构4" style="zoom:50%;" />
 
-<img src="/Users/yinxutao/Desktop/mysql_tutorial/images/磁盘结构1.png" alt="磁盘结构1" style="zoom:50%;" />
+<img src="./images/磁盘结构1.png" alt="磁盘结构1" style="zoom:50%;" />
 
-<img src="/Users/yinxutao/Desktop/mysql_tutorial/images/磁盘结构2.png" alt="磁盘结构2" style="zoom:50%;" />
+<img src="./images/磁盘结构2.png" alt="磁盘结构2" style="zoom:50%;" />
 
 ## 架构-后台线程
 
-<img src="/Users/yinxutao/Desktop/mysql_tutorial/images/后台线程.png" alt="后台线程" style="zoom:50%;" />
+<img src="./images/后台线程.png" alt="后台线程" style="zoom:50%;" />
 
 ## 事务原理-持久性
 
@@ -793,7 +793,7 @@ A：不可以，因为事务对数据的修改在磁盘中是随机位置的，�
 
 脏页的数据刷新到磁盘之后，redolog就失去作用了，所以那两个文件是循环写的。
 
-<img src="/Users/yinxutao/Desktop/mysql_tutorial/images/redo_log.png" alt="redo_log" style="zoom:50%;" />
+<img src="./images/redo_log.png" alt="redo_log" style="zoom:50%;" />
 
 
 
