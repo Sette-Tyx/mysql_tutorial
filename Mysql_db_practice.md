@@ -6,26 +6,26 @@
 
 **创建数据库**
 
-```
+```sql
 create database db_name;
 create database if not exists db_name;
 ```
 
 **切换数据库**
 
-```
+```sql
 use db_name;
 ```
 
 **查看当前数据库**
 
-```
+```sql
 select database();
 ```
 
 **删除数据库**
 
-```
+```sql
 drop database if exist db_name;
 ```
 
@@ -35,7 +35,7 @@ drop database if exist db_name;
 
 **查询当前数据库的所有表**
 
-```
+```sql
 show tables;
 ```
 
@@ -43,7 +43,7 @@ show tables;
 
 **查询表结构**
 
-```
+```sql
 desc tables_name;
 ```
 
@@ -135,7 +135,7 @@ alter table 表名 rename to 新表名
 
 **删除表**
 
-```
+```sql
 dorp table [if exists] 表名;
 ```
 
@@ -366,7 +366,7 @@ select_type：表示select的类型，常见的取值有SIMPLE（简单表，不
 
 在where中字段顺序没有关系，只要存在就可以；
 
-```
+```sql
 create index 索引名 on 表名（字段1，字段2，字段3）
 select * from 表名 where 字段1=‘值1’ and 字段2='值2' # 索引不会失效
 select * from 表名 where 字段1=‘值1’ and 字段3='值3' # 走字段1索引，字段3失效
@@ -381,7 +381,7 @@ select * from 表名 where 字段2='值2' and 字段3='值3' # 全索引会失�
 
 解决方法，可以使用(>=, <=)代替（>, <）
 
-```
+```sql
 select * from 表名 where 字段1='值1' and 字段2 > '值2' and 字段3 = '值3'  # 字段3的索引会失效
 select * from 表名 where 字段1='值1' and 字段2 >= '值2' and 字段3 = '值3'  # 全字段索引都生效
 ```
@@ -392,7 +392,7 @@ select * from 表名 where 字段1='值1' and 字段2 >= '值2' and 字段3 = '�
 
 在索引列上进行运算操作，索引会失效
 
-```
+```sql
 explain select * from tb_user where substring(phone,10,2)='15'
 ```
 
@@ -400,7 +400,7 @@ explain select * from tb_user where substring(phone,10,2)='15'
 
 **字符串不加引号，索引失效**
 
-```
+```sql
 select * from tb_user where phone=153243232 # phone字段索引失效
 select * from tb_user where phone='153243232' # phone字段索引不会失效
 ```
@@ -411,7 +411,7 @@ select * from tb_user where phone='153243232' # phone字段索引不会失效
 
 如果是尾部模糊查询，索引不会失效。如果是头部模糊查询，索引会失效
 
-```
+```sql
 select * from tb_user where profession like '软件%'; # 索引不会失效
 select * from tb_user where profession like '%工程'; # 索引会失效
 select * from tb_user where profession like '%工'; # 索引会失效
@@ -443,19 +443,19 @@ select * from tb_user where phone = '17219219312' or age = 23;
 
 use index:建议使用哪个索引，mysql使不使用自己决定
 
-```
+```sql
 explain select * from tb_user use index(idx_user_pro) where profession='软件工程';
 ```
 
 ignore index: 不使用哪个索引
 
-```
+```sql
 explain select * from tb_user ignore index(idx_user_pro) where profession='软件工程';
 ```
 
 force index:强制使用哪个索引
 
-```
+```sql
 explain select * from tb_user force index(idx_user_pro) where profession='软件工程';
 ```
 
@@ -812,4 +812,37 @@ undo log存储：undo log采用段的方式进行管理和记录，存在roll ba
 
 
 ## MVCC
+
+
+
+
+
+## 运维-日志-错误日志
+
+错误日志是默认开启的，在/var/log/，默认的日志文件名微mysqld.log。
+
+```mysql
+show variables like '%log_error%'
+```
+
+
+
+## 运维-日志-二进制日志
+
+二进制日志（BINLOG）记录了所有的DDL语句和DML语句，但不包含数据查询语句。
+
+作用：1）灾难时的数据回复；2)MySQL的主从复制。
+
+```mysql
+show variables like '%log_bin%'
+```
+
+
+
+可以通过以下命令查看二进制日志
+
+```mysql
+mysqlbinlog [参数选项] logfilename 
+# -d 指定数据库名称，只列出指定的数据库操作
+```
 
